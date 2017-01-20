@@ -7,6 +7,7 @@ PROTOCOL = 'gbdx://'
 class Task():
 	def __init__(self, gbdx_interface, task_name, params):
 		self.gbdx_interface = gbdx_interface
+		params = self.unpack_param_urls(params)
 		self.task = self.gbdx_interface.Task(task_name, **params)
 		self.persist_all_outputs()
 
@@ -17,8 +18,19 @@ class Task():
 		port_outputs = self.get_output_locations()
 		return port_outputs
 
+	def unpack_param_urls(self, params):
+		newparams = {}
+		for name, value in params.iteritems():
+			if type(value) is RemoteFile:
+				value = value.data2s3(value.location)
+
+			newparams[name] = value
+
+		return newparams
+
 	def wait_until_done(self):
 		while not self.wf.complete:
+			print '.'
 			time.sleep(20)
 
 	def get_output_locations(self):
